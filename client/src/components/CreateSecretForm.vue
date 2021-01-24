@@ -25,8 +25,8 @@
     id="expireAfter"
     placeholder="Time to live (in minutes)"
     v-model="formData.expireAfter" />
-    
-    <button class="bg-green-800 text-white block font-bold p-3">Save</button>
+     
+    <button class="bg-green-800 flex flex-grow rounded my-2 text-white block font-bold p-3 px-6">Save</button>
   </form>
 </template>
 
@@ -43,7 +43,14 @@
       }
     },
     methods: {
-      processForm() {}
+      processForm() {},
+      toServer(){
+        this.axios({
+          url:'/',
+          method: 'post',
+          data: {...this.formData}
+        })
+      }
     }
   }
   </script>
