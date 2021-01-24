@@ -1,10 +1,10 @@
 <template>
   <section>
     <div>
-      Info:{{info}}
+      Info:{{Object.is(info, null)}}
     </div>
-    <div>
-      hash:{{hash}}
+    <div :key="`error-${index}`" v-for="(error, index) of errors">
+      {{error}}
     </div>
   </section>
 </template>
@@ -20,18 +20,21 @@
     },
     data() {
       return {
-        info: null
+        info: null,
+        errors: []
       }
     },
     mounted () {
       //todo: get the id
       if (this.hash)
-        this.axios({
+        this.axios.get({
         method: 'get',
         url: `/${this.hash}`,
         responseType: 'stream'
       }).then(response=> {
-        this.info = response.data
+        this.info = response
+      }).catch(err=>{
+        this.errors.push(err)
       })
     }
   }
