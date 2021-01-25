@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="mb-6">
     <form
       @submit.prevent="processForm"
       class="relative flex flex-wrap w-full text-gray-500"

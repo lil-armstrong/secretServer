@@ -2,9 +2,14 @@
   <section v-if="info">
     <section
       :class="[
-        'border-2 hover:border-blue-600 rounded overflow-hidden border-gray-300 flex flex-col',
+        'border-2 relative hover:border-blue-600 rounded overflow-hidden border-gray-300 flex flex-col',
       ]"
     >
+      <span
+        v-show="tooltip"
+        class="absolute bottom-0 p-3 text-sm text-green-600 bg-green-200 bg-opacity-25 rounded m-1"
+        >{{ tooltip }}</span
+      >
       <div
         class="p-3 border-b border-gray-300 text-gray-500 bg-opacity-50 bg-gray-100"
       >
@@ -93,6 +98,11 @@ export default {
       required: true,
     },
   },
+  data() {
+    return {
+      tooltip: "",
+    };
+  },
   computed: {
     generateUrl() {
       let to = "view";
@@ -107,6 +117,12 @@ export default {
       value = new Date(value);
       return moment(value, "L").fromNow();
     },
+    doneCopying() {
+      this.tooltip = "Copied successfully";
+      setTimeout(() => {
+        this.tooltip = "";
+      }, 3000);
+    },
     copyToClipboard(text) {
       if (text) {
         let input = document.createElement("input");
@@ -114,6 +130,7 @@ export default {
         document.body.appendChild(input);
         input.select();
         document.execCommand("copy");
+        this.doneCopying();
         document.body.removeChild(input);
       }
     },
@@ -124,6 +141,7 @@ export default {
         range.moveToElementText(node);
         range.select();
         document.execCommand("copy");
+        this.doneCopying();
       } else if (window.getSelection) {
         const selection = window.getSelection();
         const range = document.createRange();
@@ -131,6 +149,7 @@ export default {
         selection.removeAllRanges();
         selection.addRange(range);
         document.execCommand("copy");
+        this.doneCopying();
       } else {
         console.warn("Could not select text in node: Unsupported browser.");
       }

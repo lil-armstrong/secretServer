@@ -3,5 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  
+  * {
+    &::selection {
+      @apply bg-green-100;
+    }
+  }
 }
