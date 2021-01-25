@@ -23,7 +23,7 @@
           <p class="text-gray-400">
             Secret with hash
             <span
-              class="bg-blue-300 p-1 px-2 ring-2 block m-1 font-medium text-blue-600 rounded text-sm bg-opacity-25"
+              class="bg-blue-300 p-1 px-2 ring-2 inline-block m-1 font-medium text-blue-600 rounded text-sm bg-opacity-25"
               >{{ hash }}</span
             >
             not found or deleted. Please try another hash
