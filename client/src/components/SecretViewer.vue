@@ -1,46 +1,50 @@
 <template>
-  <section>
-    <div>
-      Info:{{Object.is(info, null)}}
-    </div>
-    <div :key="`error-${index}`" v-for="(error, index) of errors">
-      {{error}}
-    </div>
+  <section v-if="info">
+
+    <section class="min-h-screen flex flex-col">
+{{info}}
+      <div class="p-3 border-b border-gray-300 text-gray-500 bg-opacity-50 bg-gray-300">
+        <small class="">Hash</small>
+        <input type="text" name="" id="" class="font-medium focus:border-none focus:shadow-none focus:outline-none w-full p-0 m-0 truncate bg-transparent border-none" readonly :value="info.hash" />
+      </div>
+
+      <div class="p-3 mb-auto flex-auto text-gray-500">
+        {{info.secretText}}
+      </div>
+
+      <div class="flex p-3 sticky bottom-0 bg-gray-300 bg-opacity-50 justify-between text-xs ">
+        <div class="truncated">
+          <span class="text-gray-400">Creation: <strong>{{timeFromNow(info.createdAt)}}</strong></span>
+        </div>
+
+        <div class="flex-grow flex-auto mx-auto text-center">
+          <span class="text-gray-400">Views left: <strong>{{ info.remainingViews}}</strong></span>
+        </div>
+
+        <div class="truncate">
+          <span class="text-gray-400">Expiration: <strong>{{timeFromNow(info.expiresAt)}}</strong></span>
+        </div>
+      </div>
+    </section>
   </section>
 </template>
 
 <script>
-export default {
-  name: "secret-viewer",
-  props: {
-    hash: {
-      required: true,
-      type: String,
+  import moment from 'moment';
+  export default {
+    name: "secret-viewer",
+
+    props: {
+      info: {
+        type: Object,
+        required: true
+      }
     },
-  data() {
-    return {
-      info: null,
-    };
-  },
-  mounted() {
-    //todo: get the id
-    if (this.hash)
-      this.axios({
-        method: "get",
-        url: `/${this.hash}`
-        })
-        .then((response) => {
-          this.info = response.data;
-        })
-        .catch((error) => {
-          if (error.response) {
-            console.error(error.response.statusText);
-          } else if (error.request) {
-            console.error({ request: error.response });
-          } else {
-            console.error({ error });
-          }
-        });
-  },
-};
-</script>
+    methods: {
+      timeFromNow(value) {
+        value = new Date(value)
+        return moment(value, "L").fromNow();
+      },
+    }
+  }
+  </script>

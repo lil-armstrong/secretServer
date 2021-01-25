@@ -1,10 +1,10 @@
 <template>
-  <div class="mx-auto lg:w-6/12 md:w-8/12">
+  <div class="mx-auto relative lg:w-6/12 md:w-8/12">
     <section class="p-4">
       <header>
-        <h1 class="text-2xl font-bold">Secret saver</h1>
+        <h1 class="text-2xl text-gray-600 capitalize font-bold">Secret saver</h1>
       </header>
-      <p class="text-sm">
+      <p class="text-gray-500">
         A secret server that can be used to store and share secrets using a
         randomly generated URL. The secret can be read only a limited number of
         times after that it will expire and won’t be available. The secret has a
