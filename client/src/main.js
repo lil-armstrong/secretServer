@@ -6,10 +6,13 @@ import VueAxios from 'vue-axios'
 import './assets/stylesheets/index.scss'
 import TheLoader from '@/components/TheLoader.vue';
 
+console.log(process.env)
+const baseURL = `${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/api/secret/`;
+console.log(baseURL)
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8000/api/secret/',
+  baseURL: `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/api/secret/`,
   timeout: 5000,
-  proxy: {  
+  proxy: {
     protocol: 'http',
     host: '127.0.0.1',
     port: 8000
