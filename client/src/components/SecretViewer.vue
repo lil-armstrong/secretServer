@@ -2,7 +2,6 @@
   <section v-if="info">
 
     <section class="min-h-screen flex flex-col">
-{{info}}
       <div class="p-3 border-b border-gray-300 text-gray-500 bg-opacity-50 bg-gray-300">
         <small class="">Hash</small>
         <input type="text" name="" id="" class="font-medium focus:border-none focus:shadow-none focus:outline-none w-full p-0 m-0 truncate bg-transparent border-none" readonly :value="info.hash" />
@@ -36,7 +35,6 @@
 
     props: {
       info: {
-        type: Object,
         required: true
       }
     },
