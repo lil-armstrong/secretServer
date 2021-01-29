@@ -1,92 +1,77 @@
 const router = require('express').Router();
-const resolvers = require('../resolvers')
-const models = require('../models')
+const { secret: resolver } = require('../resolvers');
 const moment = require('moment');
 const {
-  encrypt,
-  decrypt,
-  objectToHex
+    encrypt,
+    decrypt,
+    objectToHex
 } = require('../helpers/crypt.js');
 
-// Setup model resolvers
-const modelResolver = resolvers(models).secret;
-
-if (modelResolver) {
-
-  //Route to create secret
-  router.post('/', async (req, res, next) => {
+//Route to create secret
+router.post('/', async (req, res, next) => {
     try {
-      const body = req.body;
-      const args = Object.keys(body).join(',')
-      let {
-        expireAfter, secret, expireAfterViews
-      } = body;
+        const body = req.body;
+        const args = Object.keys(body).join(',')
+        let {
+            expireAfter,
+            secret,
+            expireAfterViews
+        } = body;
 
-      if (!expireAfterViews || !expireAfter || !secret) {
-        console.error(`Expected expireAfter, expireAfterViews, secret but got ${args}`)
+        if (!expireAfterViews || !expireAfter || !secret) {
+            console.error(`Expected expireAfter, expireAfterViews, secret but got ${args}`)
+            return res.sendStatus(500);
+        } else {
+            //Save to databasw
+            // Add `expireAfter` minutes to current time
+            let expiresAt = moment().add(expireAfter, 'm'),
+                remainingViews = Number(expireAfterViews)
 
-        return res.sendStatus(500);
-      } else {
-        //Save to databasw
-        // Add `expireAfter` minutes to current time
-        let expiresAt = moment().add(expireAfter, 'm'),
-          remainingViews = Number(expireAfterViews)
+            try {
+                let hashObject = await encrypt(secret);
+                const hash = hashObject.content;
+                const secretText = objectToHex(hashObject);
 
-        return encrypt(secret).then(async (hashObject) => {
-          // Convert object to headecimal repreaentation as string
-          const hash = hashObject.content;
-          const secretText = objectToHex(hashObject);
+                let resp = await resolver.createOne({
+                    hash,
+                    secretText,
+                    expiresAt,
+                    remainingViews
+                });
 
-          return await modelResolver.createOne({
-            expiresAt,
-            hash,
-            secretText,
-            remainingViews
-          }).then(data => {
-            return res.json({
-              data
-            })
-          })
-
-        }).catch(err => res.sendStatus(500))
-      }
+                return res.json(resp)
+            } catch (error) {
+                console.error(error.message);
+                return res.sendStatus(500)
+            }
+        }
     } catch (err) {
-      console.error(err)
+        console.error(err)
     }
-  })
+})
 
-  router.get('/',
+router.get('/',
     async (req, res) => {
-      let data = await modelResolver.findAll();
-
-      return res.json({
-        data
-      })
+        try {
+            let data = await resolver.findAll();
+            return res.json(data)
+        } catch (err) {
+            console.error(err)
+        }
     })
 
-  // Route to retrieve secret
-  router.get('/:hash',
+// Route to retrieve secret
+router.get('/:hash',
     async (req, res, next) => {
-      const hash = req.params.hash;
-
-      return await modelResolver.findByHash(hash)
-        .then(data => {
-          if (!data) {
-            return res.sendStatus(404)
-          } else {
-            //Set the secret text to the decrypted content
-            return decrypt(data.secretText).then(content => {
-              data.secretText = content;
-              return res.json({
-                data
-              })
-            });
-
-          }
-
-        })
-
+        const hash = req.params.hash;
+        try {
+            const resp = await resolver.findByHash(hash);
+            resp.secretText = decrypt(resp.secretText);
+            return res.json(resp)
+        } catch (err) {
+            console.error(err)
+        }
     });
-}
+
 
 module.exports = router

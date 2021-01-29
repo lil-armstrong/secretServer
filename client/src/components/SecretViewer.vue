@@ -7,7 +7,7 @@
     >
       <span
         v-show="tooltip"
-        class="absolute bottom-0 p-3 text-sm text-green-600 bg-green-200 bg-opacity-25 rounded m-1"
+        class="absolute top-0 right-0 p-3 text-sm text-green-600 bg-green-200 bg-opacity-25 rounded m-1"
         >{{ tooltip }}</span
       >
       <div
@@ -32,7 +32,7 @@
             />
           </svg>
           <span
-            class="font-semibold truncate tracking-wider w-full p-0 m-0 text-blue-600"
+            class="font-semibold cursor-pointer truncate tracking-wider w-full p-0 m-0 text-blue-600"
             @click.stop="selectText"
           >
             {{ info.hash }}
