@@ -34,6 +34,13 @@ For npm users
 ## How to run client-side code
 **__The client-side code uses a minimalistic Vuejs single page component setup generated using the Vue cli tool.__**
 
+**__The client-side also depends on environment variables. I decided not to use a fallback, since this is a demo app. Please create a ``.env`` file in the ``client`` folder and put the following__**
+
+```bash
+BASE_URL=/
+VUE_APP_SERVER_HOST=localhost
+VUE_APP_SERVER_PORT=8000
+```
 - Change to the ``client`` folder
 - On your terminal, type the following commands in order
 
