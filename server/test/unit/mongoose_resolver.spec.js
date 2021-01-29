@@ -1,71 +1,69 @@
 'use strict'
 
-const resolvers = require('../../resolvers');
-const models = require('../../models');
+const { mongoose, uri, options } = require('../../config/mongodb.config.js');
+const { secret } = require('../../resolvers');
 const {
-  encrypt,
-  decrypt,
-  objectToHex,
+    encrypt,
+    decrypt,
+    objectToHex,
 } = require('../../helpers/crypt');
 const moment = require('moment');
-
-const dbConnection = require('../../config/mongodb.config.js');
-// Setup model resolvers
-const secretResolver = resolvers(models).secret;
 
 
 const mins = 60;
 const viewsAllowed = 10;
 const inputObject = {
-  expiresAt: moment().add(mins, 'm'),
-  hash: '',
-  secretText: 'Nice secret',
-  remainingViews: viewsAllowed
+    expiresAt: moment().add(mins, 'm'),
+    hash: '',
+    secretText: 'Nice secret',
+    remainingViews: viewsAllowed
 };
+// Database connection
 
 
-describe(`Creates secret that allows only ${viewsAllowed} views and expires after ${mins} mins from the time of creation. Fetch the secret and decrypt hash`, ()=> {
+describe(`Creates secret that allows only ${viewsAllowed} views and expires after ${mins} mins from the time of creation. Fetch the secret and decrypt hash`, () => {
+    
+/*Test: Connect to Database*/
+    it('Connects to mongoDB database', async () => {
+        const connection = await mongoose.connect(uri, options);
+        expect(connection).toBeInstanceOf(Object)
+    });
 
-  it('Encrypts secret and stores it in mongodb, and returns the object query', ()=> {
+/*Test: Encrypt text*/
+    it('Encrypts secret and stores it in mongodb, and returns the object query', async () => {
+        try {
+            const hashObject = encrypt(inputObject.secretText);
+            // Convert object to headecimal repreaentation as string
+            inputObject.hash = hashObject.content;
+            inputObject.secretText = objectToHex(hashObject);
+            const createOne = await secretResolver.createOne(inputObject);
 
-    try {
-      return encrypt(inputObject.secretText).then(async (hashObject)=> {
-        // Convert object to headecimal repreaentation as string
-        inputObject.hash = hashObject.content;
-        inputObject.secretText = objectToHex(hashObject);
-
-        return await secretResolver.createOne(inputObject).then(data=> {
-          expect(data).not.toBeNull();
-          return data;
-        })
-      })
-    }catch(err) {
-      expect(err).not.toBeNull();
-    }
-  })
-
-  it('Takes a hash as an argument, and fetches and decrypts data from the database with it',
-    async ()=> {
-      try {
-        return secretResolver.findByHash(inputObject.hash)
-        .then(data=> {
-          expect(data).toBeTruthy();
-          expect(data.remainingViews).toBeLessThan(viewsAllowed);
-
-          return decrypt(data.secretText).then(content=> {
-            inputObject.secretText = content
-            expect(content).toBe(inputObject.secretText);
-            return content;
-          });
-        })
-      }catch(err) {
-        expect(err).not.toBeNull();
-      }
+            expect(createOne).not.toBeNull();
+            return createOne;
+        } catch (err) {
+            expect(err).not.toBeNull();
+        }
     })
 
-  afterEach(()=> {
-    console.log({
-      inputObject
+/*Test: Decrypt hash*/
+    it('Decrypts data from the database', async () => {
+        try {
+            const doc = secretResolver.findByHash(inputObject.hash);            
+            let decrypted = decrypt(doc.secretText);
+            inputObject.secretText = decrypted;
+
+            expect(doc).toBeTruthy();
+            expect(doc.remainingViews).toBeLessThan(viewsAllowed);
+            expect(decrypted).toBe(inputObject.secretText);
+        } catch (err) {
+            expect(err).not.toBeNull();
+        }
     })
-  })
+
+// Log result after each test
+    afterEach(() => {
+        console.log({          
+            inputObject
+        })
+    })
 })

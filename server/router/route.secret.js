@@ -1,17 +1,18 @@
 const router = require('express').Router();
 const { secret: resolver } = require('../resolvers');
+
 const moment = require('moment');
 const {
     encrypt,
     decrypt,
-    objectToHex
+    objectToHex,
+    handleError
 } = require('../helpers/crypt.js');
 
 //Route to create secret
 router.post('/', async (req, res, next) => {
     try {
         const body = req.body;
-        const args = Object.keys(body).join(',')
         let {
             expireAfter,
             secret,
@@ -19,59 +20,53 @@ router.post('/', async (req, res, next) => {
         } = body;
 
         if (!expireAfterViews || !expireAfter || !secret) {
-            console.error(`Expected expireAfter, expireAfterViews, secret but got ${args}`)
-            return res.sendStatus(500);
+            const args = Object.keys(body).join(',')
+            const error = `Expected expireAfter, expireAfterViews, secret but got ${args}`
+            handleError(error, res);
         } else {
-            //Save to databasw
             // Add `expireAfter` minutes to current time
             let expiresAt = moment().add(expireAfter, 'm'),
-                remainingViews = Number(expireAfterViews)
+                remainingViews = Number(expireAfterViews);
+            // Encrypt the secret
+            let hashObject = await encrypt(secret);
+            const hash = hashObject.content;
+            const secretText = objectToHex(hashObject);
+            // Save to database
+            let resp = await resolver.createOne({
+                hash,
+                secretText,
+                expiresAt,
+                remainingViews
+            });
 
-            try {
-                let hashObject = await encrypt(secret);
-                const hash = hashObject.content;
-                const secretText = objectToHex(hashObject);
-
-                let resp = await resolver.createOne({
-                    hash,
-                    secretText,
-                    expiresAt,
-                    remainingViews
-                });
-
-                return res.json(resp)
-            } catch (error) {
-                console.error(error.message);
-                return res.sendStatus(500)
-            }
+            res.json(resp)
         }
     } catch (err) {
-        console.error(err)
+        handleError(err, res)
     }
-})
+});
 
-router.get('/',
-    async (req, res) => {
-        try {
-            let data = await resolver.findAll();
-            return res.json(data)
-        } catch (err) {
-            console.error(err)
-        }
-    })
+// Route to retrieve all secrets
+router.get('/', async (req, res) => {
+    try {
+        let data = await resolver.findAll();
+        res.json(data)
+    } catch (err) {
+        handleError(err, res)
+    }
+});
 
-// Route to retrieve secret
-router.get('/:hash',
-    async (req, res, next) => {
+// Route to retrieve secret by hash
+router.get('/:hash', async (req, res, next) => {
+    try {
         const hash = req.params.hash;
-        try {
-            const resp = await resolver.findByHash(hash);
-            resp.secretText = decrypt(resp.secretText);
-            return res.json(resp)
-        } catch (err) {
-            console.error(err)
-        }
-    });
+        const resp = await resolver.findByHash(hash);
+        resp.secretText = decrypt(resp.secretText);
+        res.json(resp)
+    } catch (err) {
+        handleError(err, res);
+    }
+});
 
 
 module.exports = router

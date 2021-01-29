@@ -27,7 +27,7 @@ function decrypt(hex) {
 }
 
 // generate hash
-async function encrypt(text) {
+function encrypt(text) {
     try {
         // First, we'll generate the key. The key length is dependent on the algorithm.
         // In this case for aes192, it is 24 bytes (192 bits).
@@ -59,9 +59,17 @@ function hexToObject(hex) {
         'hex'))
 }
 
+function handleError(err, res) {
+    if (process.env.NODE_DEBUG) {
+        console.error(err);
+    }
+    res.sendStatus(500);
+}
+
 module.exports = {
     objectToHex,
     hexToObject,
     encrypt,
-    decrypt
+    decrypt,
+    handleError
 };

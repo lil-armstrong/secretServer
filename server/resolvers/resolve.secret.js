@@ -6,29 +6,16 @@ const resolver = {
     model: secret,
     // Find secret by hash
     async findByHash(hash) {
-        try {
-            return this.model.findOneAndUpdate({
-                hash
-            }, { $inc: { remainingViews: -1 } }, { new: true }, (err, doc) => {
-                if (err)
-                    throw err
-                // Decrement the remainingViews
-                if (doc && doc.remainingViews < 1)
-                    doc.deleteOne()
-                return doc;
-            })
-        } catch (err) {
-            console.error(err)
+        const doc = this.model.findOneAndUpdate({ hash }, { $inc: { remainingViews: -1 } }, { new: true });
+        if (doc && doc.remainingViews < 1) {
+            doc.deleteOne();
         }
+        return doc;
     },
-// Find all secrets
+
+    // Find all secrets
     async findAll() {
-        try {
-            return this.model.find({},
-                (err, docs) => err ? err : docs)
-        } catch (err) {
-            console.error(err)
-        }
+        return this.model.find({});
     },
 
     // Create a new secret
@@ -38,18 +25,13 @@ const resolver = {
         expiresAt,
         remainingViews
     }) {
-        try {
-            const newSecret = new this.model({
-                hash,
-                secretText,
-                expiresAt,
-                remainingViews
-            });
-            console.log({newSecret})
-            return newSecret.save();
-        } catch (err) {
-            console.error(err)
-        }
+        const newSecret = new this.model({
+            hash,
+            secretText,
+            expiresAt,
+            remainingViews
+        });
+        return newSecret.save();
     }
 };
 module.exports = resolver;
