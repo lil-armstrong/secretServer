@@ -1,5 +1,5 @@
 # SecretServer
-A secret server that can be used to store and share secrets using a randomly generated URL. The secret can be read only a limited number of times after that it will expire and won’t be available. The secret has a TTL (Time to live). After the expiration time the secret won’t be available anymore.
+A secure platform for storing and sharing confidential information via randomly generated URLs. Secrets are accessible only for a limited number of views or until they expire based on a set TTL (Time-to-Live) input. Once expired, they become permanently unavailable.
 
 This app consists of both the client-side and server-side code implementation.
 All server-side code is in the ``server`` folder, while the client-side code is in the folder named ``client``
